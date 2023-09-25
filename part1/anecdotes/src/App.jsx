@@ -2,6 +2,27 @@ import { useState } from 'react'
 
 const Button = ({text, handleClick}) => <button onClick={handleClick}>{text}</button>
 
+const DisplayVotes = ({votes, selected}) => <div>has {votes[selected]} votes</div>
+
+const Winner = ({votes, anecdotes}) => {
+  const newVotes = [...votes]
+  const highestVote = Math.max(...newVotes)
+  const voteIndex =  newVotes.indexOf(highestVote)
+
+  if (highestVote == 0) {
+    return <div>No votes yet</div>
+  }
+
+  return (
+    <div>
+      {anecdotes[voteIndex]}
+      <DisplayVotes votes={newVotes} selected={voteIndex}/>
+    </div>
+  )
+}
+
+const DisplayTitle = ({title}) => <h2>{title}</h2>
+
 const App = () => {
   const anecdotes = [
     'If it hurts, do it more often.',
@@ -16,13 +37,36 @@ const App = () => {
    
   const [selected, setSelected] = useState(0)
 
+  const [votes, setVotes] = useState(Array(anecdotes.length).fill(0))
+
+  const newVotes = [...votes]
+
   return (
     <>
       <div>
-        {anecdotes[selected]}
+        <DisplayTitle title="Anecdote with the most votes"/>
+        <Winner votes={votes} anecdotes={anecdotes}/>
       </div>
 
-      <Button text="next anecdote" handleClick={() => setSelected(Math.round(Math.random() * anecdotes.length))}/>
+      <div>
+        <DisplayTitle title="Anecdote of the day"/>
+        {anecdotes[selected]}
+        <DisplayVotes votes={newVotes} selected={selected}/>
+      </div>
+
+      <Button text="next anecdote" handleClick={() => {
+        let randomNum = Math.floor(Math.random() * anecdotes.length)
+        while (randomNum == selected) {
+          randomNum = Math.floor(Math.random() * anecdotes.length)
+        }
+        setSelected(randomNum)
+      }
+      }/>
+
+      <Button text="vote" handleClick={() => {
+        newVotes[selected] += 1
+        setVotes(newVotes)
+      }}/>
     </>
   )
 }
