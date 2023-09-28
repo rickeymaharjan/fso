@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
 const DisplayPerson = ({person}) => {
-  return <div>{person.name}</div>
+  return <div>-{person.name}</div>
 }
 
 const App = () => {
@@ -18,9 +18,17 @@ const App = () => {
       id: persons.length + 1
     }
 
-    setPersons(persons.concat(personObject))
-    setNewName("")
+    const nameExists = persons.some((person) => person.name == newName)
+
+    if (nameExists) {
+      alert(`${newName} already exists`)
+    } else {
+      console.log("New name")
+      setPersons(persons.concat(personObject))
+      setNewName("")
+    }
   }
+
 
   const handleInput = (event) => {
     setNewName(event.target.value)
