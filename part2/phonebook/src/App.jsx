@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
 import PersonForm from './components/PersonForm'
 import Persons from './components/Persons'
+import personServices from "./services/phonebook"
 
 const App = () => {
   const [persons, setPersons] = useState([])
@@ -9,18 +9,16 @@ const App = () => {
   const [newNumber, setNewNumber] = useState('')
 
   useEffect(() => {
-    axios
-      .get("http://localhost:3001/persons")
-      .then(response => setPersons(response.data))
-
+    personServices
+      .getAll()
+      .then(initialContacts => setPersons(initialContacts))
   }, [])
 
   const addNewPerson = (event) => {
     event.preventDefault()
     const personObject = {
       name: newName,
-      number: newNumber,
-      id: persons.length + 1
+      number: newNumber
     }
 
     const nameExists = persons.some((person) => person.name == newName)
@@ -29,6 +27,8 @@ const App = () => {
       alert(`${newName} already exists`)
     } else {
       console.log("New name")
+      // Add new contacts in the server
+      personServices.addPerson(personObject).then(response => console.log(response))
       setPersons(persons.concat(personObject))
       setNewName("")
     }
