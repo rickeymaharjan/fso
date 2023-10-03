@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import PersonForm from './components/PersonForm'
-import Persons from './components/Persons'
+import Person from './components/Persons'
 import personServices from "./services/phonebook"
 
 const App = () => {
@@ -24,15 +24,28 @@ const App = () => {
     const nameExists = persons.some((person) => person.name == newName)
 
     if (nameExists) {
-      alert(`${newName} already exists`)
-    } else {
-      console.log("New name")
-      // Add new contacts in the server
-      personServices.addPerson(personObject).then(response => console.log(response))
-      setPersons(persons.concat(personObject))
-      setNewName("")
+      const confirm = window.confirm(`${newName} is already added to the phonebook, replace the old number with the new one?`)
+      if (confirm) {
+        const matchingPerson = persons.find(person => person.name == newName)
+        const updatedObj = {...matchingPerson, number: newNumber}
+        personServices.updateNumber(updatedObj.id, updatedObj)
+          .then(returnedPerson => 
+            setPersons(persons.map(p => p.id === matchingPerson.id ? returnedPerson : p))
+          )
+          .catch(error => 
+            alert(`${matchingPerson.name} deleted from the server`)
+            ,setPersons(persons.filter(p => p.id != matchingPerson.id))
+            )
+      } else {
+        console.log("No changes made.")
+      }
+      } else {
+        // Add new contacts in the server
+        personServices.addPerson(personObject)
+        setPersons(persons.concat(personObject))
+        setNewName("")
+      }
     }
-  }
 
   const handleInputName = (event) => {
     setNewName(event.target.value)
@@ -42,6 +55,19 @@ const App = () => {
     setNewNumber(event.target.value)
   }
 
+  const handleDelete = (id) => {
+    const match = persons.find(person => id === person.id)
+    const confirm = window.confirm(`Delete ${match.name}?`)
+    if (confirm) {
+      personServices.deletePerson(match.id)
+      console.log(`'${match.name}' removed from the list.`)
+      const updatedList = persons.filter(person => person.id != match.id)
+      setPersons(updatedList)
+    } else {
+      console.log("No changes made.")
+    }
+  }
+
   return (
     <div>
       <h2>Phonebook</h2>
@@ -49,8 +75,14 @@ const App = () => {
       <PersonForm handleInputName={handleInputName} handleInputNumber={handleInputNumber} addNewPerson={addNewPerson}/>
       
       <h2>Numbers</h2>
-      
-      <Persons persons={persons}/>
+
+      {persons.map(person => (
+          <Person 
+            key={person.id} 
+            person={person} 
+            handleClick={() => handleDelete(person.id)}
+          />
+      ))}
     </div>
   )
 }
