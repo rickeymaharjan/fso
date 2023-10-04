@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import PersonForm from './components/PersonForm'
 import Person from './components/Persons'
+import Filter from './components/Filter'
 import Notification from './components/Notification'
 import personServices from "./services/phonebook"
 
@@ -10,6 +11,7 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [alert, setAlert] = useState(null)
+  const [filtered, setFiltered] = useState("")
 
   // Load the inital data from the database
   useEffect(() => {
@@ -73,6 +75,7 @@ const App = () => {
   
   // Update name in the state
   const handleInputName = (event) => {
+    console.log(event.target.value)
     setNewName(event.target.value)
   }
 
@@ -107,9 +110,25 @@ const App = () => {
     }
   }
 
+  const handleSearch = (event) => {
+    // Assuming you have state variables: persons, setPersons, and filtered, setFiltered
+    const searchValue = event.target.value;
+    if (searchValue == "") {
+      personServices
+      .getAll()
+      .then(initialContacts => setPersons(initialContacts))
+    } else {
+        setFiltered(searchValue);
+        const regex = new RegExp(searchValue, 'i');
+        const filteredPersons = persons.filter((person) => regex.test(person.name));
+        setPersons(filteredPersons);
+    }
+  };
+
   return (
     <div>
       <h2>Phonebook</h2>
+      <Filter onChange={handleSearch}/>
 
       <Notification message={alert}/>
 
